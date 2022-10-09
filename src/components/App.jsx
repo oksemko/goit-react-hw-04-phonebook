@@ -47,36 +47,61 @@ export class App extends Component {
       .sort((a, b) => a.name.localeCompare(b.name));
   };
 
+
+
   formSubmit = ({ name, number }) => {
     this.setState(prevState => {
       const { contacts } = prevState;
-      const isContact = contacts.find(contact => contact.name === name);
-
-      if (isContact) {
-        alert(`${name} ia already in contact`);
-        return contacts;
-      } else {
-        return {
-          contacts: [
-            {
-              id: nanoid(),
-              name,
-              number,
-            },
-            ...contacts,
-          ],
-        };
-      }
+      return {
+        contacts: [
+          {
+            id: nanoid(),
+            name,
+            number,
+          },
+          ...contacts,
+        ],
+      };
     });
-  };
+  }
+
+//  ------------ Previous version formSubmit. ------------
+  // ----------- Here was added checking, but in this case it wasn`t nessery because setState would be run anyway. ---------
+
+
+  // formSubmit = ({ name, number }) => {
+  //   this.setState(prevState => {
+  //     const { contacts } = prevState;
+  //     const isContact = contacts.find(contact => contact.name === name);
+
+  //     if (isContact) {
+  //       alert(`${name} ia already in contact`);
+  //       return contacts;
+  //     } else {
+  //       return {
+  //         contacts: [
+  //           {
+  //             id: nanoid(),
+  //             name,
+  //             number,
+  //           },
+  //           ...contacts,
+  //         ],
+  //       };
+  //     }
+  //   });
+  // };
 
   contactDelete = id => {
     this.setState(prevState => {
       const { contacts } = prevState;
+      // contacts.filter(contact => contact.id !== id);
       const contactsAfterDelete = contacts.filter(contact => contact.id !== id);
       return {
         contacts: [
           ...contactsAfterDelete
+          // (!------> method "filter" return array, but here we need another array [contactaAfterDelete] to delete contacts
+          // correctly: only what we need because in other case all contacts will be deleted).
         ]
       };
     });
