@@ -1,4 +1,4 @@
-import { Component } from 'react';
+import { useState} from 'react';
 import { nanoid } from 'nanoid';
 
 import { ContactsForm } from './ContactsForm/ContactsForm';
@@ -7,40 +7,22 @@ import { Filter } from './Filter/Filter';
 
 import { Container, Title } from './App.styled';
 
+import useLocalStorage from 'hooks/useLocalStorage';
 
-export class App extends Component {
-    state = {
-    contacts: [],
-    filter: '',
-  };
 
-  componentDidMount() {
-    const contactsList = localStorage.getItem('contactsList');
-    if (contactsList) {
-      try {
-        const parseContactsList = JSON.parse(contactsList);
-        this.setState({ contacts: parseContactsList });
-      } catch {
-        this.setState({ contacts: [] });
-      }
-    }
+export function App() {
+  const [contacts, setContacts] = useLocalStorage('contactList', []);
+  const [filter, setFilter] = useState('');
+
+
+  const handleFilterChange = event => {
+    setFilter(event.currentTarget.value);
   }
 
-  componentDidUpdate(_prevProps, prevState) {
-    if (this.state.contacts !== prevState.contacts) {
-      localStorage.setItem('contactsList', JSON.stringify(this.state.contacts));
-    }
-  }
-
-  handleFilterChange = event => {
-    const { name, value } = event.currentTarget;
-    this.setState({ [name]: value });
-  }
-
-  filteredContacts = value => {
+  const filteredContacts = value => {
     const filterNormalize = value.toLowerCase();
 
-    return this.state.contacts
+    return contacts
       .filter(contact => {
         return contact.name.toLowerCase().includes(filterNormalize);
       })
@@ -48,87 +30,46 @@ export class App extends Component {
   };
 
 
-
-  formSubmit = ({ name, number }) => {
-    this.setState(prevState => {
-      const { contacts } = prevState;
-      return {
-        contacts: [
-          {
-            id: nanoid(),
-            name,
-            number,
-          },
-          ...contacts,
-        ],
-      };
-    });
-  }
-
-//  ------------ Previous version formSubmit. ------------
-  // ----------- Here was added checking, but in this case it wasn`t nessery because setState would be run anyway. ---------
-
-
-  // formSubmit = ({ name, number }) => {
-  //   this.setState(prevState => {
-  //     const { contacts } = prevState;
-  //     const isContact = contacts.find(contact => contact.name === name);
-
-  //     if (isContact) {
-  //       alert(`${name} ia already in contact`);
-  //       return contacts;
-  //     } else {
-  //       return {
-  //         contacts: [
-  //           {
-  //             id: nanoid(),
-  //             name,
-  //             number,
-  //           },
-  //           ...contacts,
-  //         ],
-  //       };
-  //     }
-  //   });
-  // };
-
-  contactDelete = id => {
-    this.setState(prevState => {
-      const { contacts } = prevState;
-      // contacts.filter(contact => contact.id !== id);
-      const contactsAfterDelete = contacts.filter(contact => contact.id !== id);
-      return {
-        contacts: [
-          ...contactsAfterDelete
-          // (!------> method "filter" return array, but here we need another array [contactaAfterDelete] to delete contacts
-          // correctly: only what we need because in other case all contacts will be deleted).
-        ]
-      };
-    });
+  const contactDelete = id => {
+      setContacts(state => state.filter(contact => contact.id !== id));
   };
 
-  render() {
-    const { filter } = this.state;
+  const formSubmit = ({ name, number }) => {
+    const isContact = contacts.find(contact => contact.name === name);
+    if (isContact) {
+      alert(`${name} is already in contact`);
+    } else {
+      setContacts(state => {
+        const newContact = {
+          id: nanoid(),
+          name,
+          number,
+        };
+        return [newContact, ...state];
+      });
+    }
+  };
+
+
     return (
       <Container>
         <Title>Phonebook</Title>
-        <ContactsForm onSubmit={this.formSubmit} />
+        <ContactsForm onSubmit={formSubmit} />
 
         <Title>Contacts</Title>
         <Filter
         title="Find contact by name"
-        onChange={this.handleFilterChange}
+        onChange={handleFilterChange}
         value={filter}
         />
 
         <ContactsList
-          filteredContacts={this.filteredContacts(filter)}
-          onDelete={this.contactDelete}
+          filteredContacts={filteredContacts(filter)}
+          onDelete={contactDelete}
         />
       </Container>
     );
   }
-}
 
 
 
