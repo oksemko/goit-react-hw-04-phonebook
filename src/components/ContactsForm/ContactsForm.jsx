@@ -1,29 +1,42 @@
-import React, { Component } from 'react';
+import React, { useState } from 'react';
 
 import { Form, Container, Label, Input, Button } from './ContactsForm.styled';
 
-export class ContactsForm extends Component {
-  state = {
-    name: '',
-    number: '',
-  };
+export function ContactsForm({ onSubmit}) {
+  const [name, setName] = useState('');
+  const [number, setNumber] = useState('');
 
-  handleInputChange = event => {
+
+  const handleInputChange = event => {
     const { name, value } = event.currentTarget;
-    this.setState({ [name]: value });
+    switch (name) {
+      case 'name':
+        setName(value);
+        break;
+
+      case 'number':
+        setNumber(value);
+        break;
+
+      default:
+        return new Error('Something went wrong in ContactForm');
+    }
   };
 
-  handleSubmit = event => {
+
+  const handleSubmit = event => {
     event.preventDefault();
-    this.props.onSubmit(this.state);
-    this.setState({ name: '', number: '' });
+    onSubmit({
+      name,
+      number,
+    });
+    setName('');
+    setNumber('')
   };
 
 
-  render() {
-    const { name, number } = this.state;
     return (
-      <Form action="submit" onSubmit={this.handleSubmit}>
+      <Form action="submit" onSubmit={handleSubmit}>
         <Container>
           <Label>
             Name
@@ -34,7 +47,7 @@ export class ContactsForm extends Component {
               title="Name may contain only letters, apostrophe, dash and spaces. For example Adrian, Jacob Mercer, Charles de Batz de Castelmore d'Artagnan"
               required
               value={name}
-              onChange={this.handleInputChange}
+              onChange={handleInputChange}
             />
           </Label>
           <Label>
@@ -46,7 +59,7 @@ export class ContactsForm extends Component {
               title="Phone number must be digits and can contain spaces, dashes, parentheses and can start with +"
               required
               value={number}
-              onChange={this.handleInputChange}
+              onChange={handleInputChange}
             />
           </Label>
           <Button type="submit">
@@ -56,4 +69,3 @@ export class ContactsForm extends Component {
       </Form>
     );
   }
-}
